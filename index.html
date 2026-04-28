@@ -16,7 +16,7 @@ body { font-family: Arial, sans-serif; text-align: center; }
 <div id="instructions">
   <h2>Instructions</h2>
   <p id="instructionText"></p>
-  <button onclick="startExperiment()">Start</button>
+  <button id="startBtn">Start</button>
 </div>
 
 <div id="gameScreen" class="hidden">
@@ -187,6 +187,10 @@ window.onload = function() {
   try {
     group = assignGroup();
     setInstructions();
+
+    // Attach button handler safely
+    document.getElementById("startBtn").addEventListener("click", startExperiment);
+
     console.log("Instructions loaded", group);
   } catch (e) {
     console.error("Init error:", e);
