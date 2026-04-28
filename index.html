@@ -4,11 +4,38 @@
 <meta charset="UTF-8">
 <title>Tower of Hanoi Experiment</title>
 <style>
-body { font-family: Arial, sans-serif; text-align: center; }
-.hidden { display: none; }
-#game { display: flex; justify-content: center; margin-top: 40px; }
-.peg { width: 120px; height: 300px; border: 2px solid black; margin: 0 20px; position: relative; }
-.disk { height: 20px; position: absolute; left: 0; right: 0; margin: auto; border-radius: 10px; cursor: grab; }
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+
+#game {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.peg {
+  width: 120px;
+  height: 300px;
+  border: 2px solid black;
+  margin: 0 20px;
+  position: relative;
+}
+
+.disk {
+  height: 20px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: auto;
+  border-radius: 10px;
+  cursor: grab;
+}
 </style>
 </head>
 <body>
@@ -31,54 +58,60 @@ body { font-family: Arial, sans-serif; text-align: center; }
 </div>
 
 <script>
-alert("JS is running");
 let group = {};
 let moves = 0;
 let startTime;
 let numDiscs;
 let pegs = [[], [], []];
+let dragged = null;
 
 function assignGroup() {
-  const pressure = Math.random() < 0.5 ? "pressure" : "neutral";
-  const difficulty = Math.random() < 0.5 ? "easy" : "hard";
-  return { pressure, difficulty };
+  return {
+    pressure: Math.random() < 0.5 ? "pressure" : "neutral",
+    difficulty: Math.random() < 0.5 ? "easy" : "hard"
+  };
 }
 
 function setInstructions() {
-  const text = document.getElementById("instructionText");
+  const el = document.getElementById("instructionText");
 
-  let baseRules = `In this puzzle, you must move all blocks from the left box to the right box.<br><br>
-  <strong>Rules:</strong><br>
-  • You may only move one block at a time.<br>
-  • A larger block may never be placed on top of a smaller block.<br><br>`;
+  const rules = `
+    In this puzzle, you must move all blocks from the left box to the right box.<br><br>
+    <strong>Rules:</strong><br>
+    • Only one block may be moved at a time.<br>
+    • A larger block cannot be placed on a smaller block.<br><br>
+  `;
 
-  let prompt = "";
+  let prompt;
 
   if (group.pressure === "pressure") {
-    prompt = "This task is used as a measure of intelligence. Many people struggle with this puzzle. Try to complete it as quickly and accurately as possible.";
+    prompt = "This is a test of intelligence. Many people struggle with this task. Complete it as quickly and accurately as possible.";
   } else {
     prompt = "Please complete the puzzle as quickly and accurately as possible.";
   }
 
-  text.innerHTML = baseRules + prompt;
+  el.innerHTML = rules + prompt;
 }
 
 function startExperiment() {
   document.getElementById("instructions").classList.add("hidden");
   document.getElementById("gameScreen").classList.remove("hidden");
+
   startTime = Date.now();
   initGame();
 }
 
 function initGame() {
   numDiscs = group.difficulty === "easy" ? 3 : 4;
-  pegs = [[], [], []];
   moves = 0;
+  pegs = [[], [], []];
+
   document.getElementById("moves").innerText = moves;
 
   for (let i = numDiscs; i >= 1; i--) {
     pegs[0].push(i);
   }
+
   render();
 }
 
@@ -101,40 +134,39 @@ function render() {
       diskDiv.dataset.size = disk;
       diskDiv.dataset.peg = pegIndex;
 
-      diskDiv.addEventListener("dragstart", dragStart);
+      diskDiv.addEventListener("dragstart", (e) => {
+        dragged = {
+          size: parseInt(e.target.dataset.size),
+          from: parseInt(e.target.dataset.peg)
+        };
+      });
+
       pegDiv.appendChild(diskDiv);
     });
 
-    pegDiv.addEventListener("dragover", e => e.preventDefault());
-    pegDiv.addEventListener("drop", drop);
+    pegDiv.addEventListener("dragover", (e) => e.preventDefault());
+
+    pegDiv.addEventListener("drop", (e) => {
+      const to = parseInt(e.currentTarget.dataset.index);
+
+      const fromPeg = pegs[dragged.from];
+      const toPeg = pegs[to];
+
+      if (fromPeg[fromPeg.length - 1] !== dragged.size) return;
+      if (toPeg.length && toPeg[toPeg.length - 1] < dragged.size) return;
+
+      fromPeg.pop();
+      toPeg.push(dragged.size);
+
+      moves++;
+      document.getElementById("moves").innerText = moves;
+
+      render();
+      checkWin();
+    });
+
     game.appendChild(pegDiv);
   });
-}
-
-let dragged;
-
-function dragStart(e) {
-  dragged = {
-    size: parseInt(e.target.dataset.size),
-    from: parseInt(e.target.dataset.peg)
-  };
-}
-
-function drop(e) {
-  const to = parseInt(e.currentTarget.dataset.index);
-  const fromPeg = pegs[dragged.from];
-  const toPeg = pegs[to];
-
-  if (fromPeg[fromPeg.length - 1] !== dragged.size) return;
-  if (toPeg.length && toPeg[toPeg.length - 1] < dragged.size) return;
-
-  fromPeg.pop();
-  toPeg.push(dragged.size);
-  moves++;
-  document.getElementById("moves").innerText = moves;
-
-  render();
-  checkWin();
 }
 
 function checkWin() {
@@ -155,45 +187,25 @@ function saveData(timeTaken) {
     moves: moves
   };
 
-  fetch("https://script.google.com/macros/s/AKfycbznKicoh3kpTJt5GtTMtSddO5wUNw7mnBr8Xd02vJcfU9QBkDgbVmMViZLJp50S386ROQ/exec", {
+  fetch("https://script.google.com/macros/s/YOUR_SCRIPT_URL/exec", {
     method: "POST",
-    body: JSON.stringify(data),
-    headers: {
-      "Content-Type": "application/json"
-    }
+    body: JSON.stringify(data)
   }).catch(err => console.error(err));
 
-  // Optional local backup
-  let allData = JSON.parse(localStorage.getItem("hanoiData") || "[]");
-  allData.push(data);
-  localStorage.setItem("hanoiData", JSON.stringify(allData));
-};
-
-  fetch("https://script.google.com/macros/s/AKfycbznKicoh3kpTJt5GtTMtSddO5wUNw7mnBr8Xd02vJcfU9QBkDgbVmMViZLJp50S386ROQ/exec", {
-    method: "POST",
-    body: JSON.stringify(data),
-    headers: {
-      "Content-Type": "application/json"
-    }
-  }).catch(err => console.error(err));
-};
-
-  let allData = JSON.parse(localStorage.getItem("hanoiData") || "[]");
-  allData.push(data);
-  localStorage.setItem("hanoiData", JSON.stringify(allData));
+  let backup = JSON.parse(localStorage.getItem("hanoiData") || "[]");
+  backup.push(data);
+  localStorage.setItem("hanoiData", JSON.stringify(backup));
 }
 
-// Initialize AFTER page loads
 window.onload = function() {
-  try {
-    group = assignGroup();
-    setInstructions();
+  console.log("Page loaded");
 
-    // Attach button handler safely
-    document.getElementById("startBtn").addEventListener("click", startExperiment);
+  group = assignGroup();
+  setInstructions();
 
-    console.log("Instructions loaded", group);
-  } catch (e) {
-    console.error("Init error:", e);
-  }
+  document.getElementById("startBtn").addEventListener("click", startExperiment);
 };
+</script>
+
+</body>
+</html>
