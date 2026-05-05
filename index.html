@@ -36,6 +36,20 @@ body {
   border-radius: 10px;
   cursor: grab;
 }
+
+#consentBox {
+  max-width: 700px;
+  margin: 20px auto;
+  text-align: left;
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 </style>
 </head>
 <body>
@@ -43,7 +57,15 @@ body {
 <div id="instructions">
   <h2>Instructions</h2>
   <p id="instructionText"></p>
-  <button id="startBtn">Start</button>
+
+  <div id="consentBox">
+    <label>
+      <input type="checkbox" id="consentCheckbox">
+      I give consent for my responses to be recorded and used for a student research project for Psych 402. This survey is anonymous, and no identifying information will be collected. My participation is voluntary, and I may choose to stop participating at any time. By continuing with this form, I acknowledge that I am at least 18 years old and agree to participate in this study.
+    </label>
+  </div>
+
+  <button id="startBtn" disabled>Start</button>
 </div>
 
 <div id="gameScreen" class="hidden">
@@ -94,6 +116,13 @@ function setInstructions() {
 }
 
 function startExperiment() {
+  const consentCheckbox = document.getElementById("consentCheckbox");
+
+  if (!consentCheckbox.checked) {
+    alert("You must provide consent before participating.");
+    return;
+  }
+
   document.getElementById("instructions").classList.add("hidden");
   document.getElementById("gameScreen").classList.remove("hidden");
 
@@ -203,7 +232,14 @@ window.onload = function() {
   group = assignGroup();
   setInstructions();
 
-  document.getElementById("startBtn").addEventListener("click", startExperiment);
+  const consentCheckbox = document.getElementById("consentCheckbox");
+  const startBtn = document.getElementById("startBtn");
+
+  consentCheckbox.addEventListener("change", function() {
+    startBtn.disabled = !this.checked;
+  });
+
+  startBtn.addEventListener("click", startExperiment);
 };
 </script>
 
