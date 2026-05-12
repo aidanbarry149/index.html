@@ -74,6 +74,16 @@ button:disabled {
     </label>
   </div>
   <button id="startBtn" disabled>Continue to Instructions</button>
+  <button id="declineBtn">Do Not Participate</button>
+</div>
+
+<!-- ====================== DECLINE SCREEN ====================== -->
+<div id="declineScreen" class="hidden">
+  <h2>Thank You</h2>
+  <div class="form-container">
+    <p>Thank you for considering participation in this study.</p>
+    <p>You have chosen not to participate. No data has been recorded.</p>
+  </div>
 </div>
 
 <!-- ====================== INSTRUCTIONS SCREEN ====================== -->
@@ -116,12 +126,11 @@ button:disabled {
 
     <p>Thank you again for contributing to psychological research at Saint Mary's College of California!</p>
   </div>
-  <button onclick="window.location.reload()">Restart (Testing Only)</button>
 </div>
 
 <script>
 // ====================== CONFIG ======================
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxAX6ERIm1Vl0fksevmcbPZEWhBKhrgws-maOXr9BG30cJStG46WKADhVaAFD4KZKcPA/exec";   // ← PASTE YOUR CURRENT URL HERE
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxAX6ERIm1Vl0fksevmcbPZEWhBKhrgws-maOXr9BG30cJStG46WKADhVaAFD4KZKcPA/exec";
 
 let group = {};
 let moves = 0;
@@ -164,6 +173,11 @@ function startExperiment() {
   setInstructions();
 }
 
+function declineParticipation() {
+  document.getElementById("consentScreen").classList.add("hidden");
+  document.getElementById("declineScreen").classList.remove("hidden");
+}
+
 function beginTask() {
   document.getElementById("instructionsScreen").classList.add("hidden");
   document.getElementById("gameScreen").classList.remove("hidden");
@@ -177,15 +191,18 @@ function initGame() {
   moves = 0;
   pegs = [[], [], []];
   document.getElementById("moves").innerText = moves;
+
   for (let i = numDiscs; i >= 1; i--) {
     pegs[0].push(i);
   }
+
   render();
 }
 
 function render() {
   const game = document.getElementById("game");
   game.innerHTML = "";
+
   pegs.forEach((peg, pegIndex) => {
     const pegDiv = document.createElement("div");
     pegDiv.className = "peg";
@@ -200,9 +217,14 @@ function render() {
       diskDiv.draggable = true;
       diskDiv.dataset.size = disk;
       diskDiv.dataset.peg = pegIndex;
+
       diskDiv.addEventListener("dragstart", (e) => {
-        dragged = { size: parseInt(e.target.dataset.size), from: parseInt(e.target.dataset.peg) };
+        dragged = {
+          size: parseInt(e.target.dataset.size),
+          from: parseInt(e.target.dataset.peg)
+        };
       });
+
       pegDiv.appendChild(diskDiv);
     });
 
@@ -222,8 +244,10 @@ function handleDrop(e) {
 
   fromPeg.pop();
   toPeg.push(dragged.size);
+
   moves++;
   document.getElementById("moves").innerText = moves;
+
   render();
   checkWin();
 }
@@ -232,6 +256,7 @@ function checkWin() {
   if (pegs[2].length === numDiscs) {
     const timeTaken = Date.now() - startTime;
     saveData(timeTaken);
+
     document.getElementById("gameScreen").classList.add("hidden");
     document.getElementById("debriefScreen").classList.remove("hidden");
   }
@@ -274,8 +299,10 @@ window.onload = () => {
   });
 
   startBtn.addEventListener("click", startExperiment);
+  document.getElementById("declineBtn").addEventListener("click", declineParticipation);
   document.getElementById("beginTaskBtn").addEventListener("click", beginTask);
 };
 </script>
+
 </body>
 </html>
