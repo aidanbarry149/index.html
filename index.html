@@ -116,10 +116,10 @@ button:disabled {
       <li><strong>Difficulty:</strong> You were randomly assigned to either the 3-disk (easier) or 4-disk (harder) version.</li>
     </ul>
 
-    <p>Your data (completion time and moves) have been recorded anonymously.</p>
+    <p>Your data has been recorded anonymously.</p>
 
-    <p>If you experienced discomfort or wish to withdraw your data, please contact:</p>
-    <p>Aidan Barry: adb15@stmarys-ca.edu<br>
+    <p>If you experienced discomfort or wish to withdraw your data, please contact:<br>
+       Aidan Barry: adb15@stmarys-ca.edu<br>
        Professor Vu: hvu@stmarys-ca.edu</p>
 
     <p>Thank you for contributing to Psych 402 research at Saint Mary's College of California!</p>
@@ -143,7 +143,6 @@ function assignGroup() {
   };
 }
 
-// ====================== INSTRUCTIONS ======================
 function setInstructions() {
   const el = document.getElementById("instructionText");
   const rules = `
@@ -214,10 +213,7 @@ function render() {
       diskDiv.dataset.peg = pegIndex;
 
       diskDiv.addEventListener("dragstart", (e) => {
-        dragged = {
-          size: parseInt(e.target.dataset.size),
-          from: parseInt(e.target.dataset.peg)
-        };
+        dragged = { size: parseInt(e.target.dataset.size), from: parseInt(e.target.dataset.peg) };
       });
 
       pegDiv.appendChild(diskDiv);
@@ -225,7 +221,6 @@ function render() {
 
     pegDiv.addEventListener("dragover", (e) => e.preventDefault());
     pegDiv.addEventListener("drop", handleDrop);
-
     game.appendChild(pegDiv);
   });
 }
@@ -255,28 +250,25 @@ function checkWin() {
   }
 }
 
+// ====================== SAVE DATA (FIXED) ======================
 function saveData(timeTaken) {
-  const data = {
-    pressure: group.pressure,
-    difficulty: group.difficulty,
-    time: timeTaken,           // Changed back to "time" - most likely what your Google Sheet expects
-    time_ms: timeTaken,        // Backup column
-    moves: moves,
-    timestamp: new Date().toISOString()
-  };
+  const formData = new FormData();
+  formData.append("pressure", group.pressure);
+  formData.append("difficulty", group.difficulty);
+  formData.append("time", timeTaken);
+  formData.append("moves", moves);
 
   fetch("https://script.google.com/macros/s/AKfycbxDNNCY2IH8K3sVdsHLB6HY5oXBE5_o0je0ydUR7d60N7kvNfRoZbY1ja5oUOSOZ7T74w/exec", {
     method: "POST",
-    body: JSON.stringify(data),
-    headers: {
-      "Content-Type": "application/json"
-    }
-  }).catch(err => console.error("Save error:", err));
-
-  // Local backup
-  let backup = JSON.parse(localStorage.getItem("hanoiData") || "[]");
-  backup.push(data);
-  localStorage.setItem("hanoiData", JSON.stringify(backup));
+    body: formData
+  })
+  .then(response => {
+    console.log("✅ Data sent successfully");
+  })
+  .catch(err => {
+    console.error("❌ Save failed:", err);
+    alert("Warning: Data could not be saved. Please screenshot this and send to Aidan.");
+  });
 }
 
 function withdraw() {
