@@ -9,7 +9,6 @@ body {
   font-family: Arial, sans-serif;
   text-align: center;
   margin: 10px;
-  padding: 0;
 }
 .hidden { display: none; }
 #game { 
@@ -18,23 +17,22 @@ body {
   margin: 20px auto;
   flex-wrap: wrap;
 }
-.peg { 
+.box { 
   width: 100px; 
   height: 280px; 
   border: 3px solid #333; 
   border-top: none;
-  margin: 10px;
+  margin: 8px;
   position: relative;
   background-color: #f0f0f0;
   border-radius: 8px;
 }
-.disk { 
+.block { 
   height: 22px; 
   position: absolute; 
   left: 50%;
   transform: translateX(-50%);
   border-radius: 12px;
-  cursor: grab;
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
   user-select: none;
 }
@@ -60,7 +58,6 @@ button:disabled {
 </head>
 <body>
 
-<!-- CONSENT, INSTRUCTIONS, GAME, and DEBRIEF sections remain the same as last version -->
 <!-- ====================== CONSENT SCREEN ====================== -->
 <div id="consentScreen">
   <h2>Informed Consent Form</h2>
@@ -75,17 +72,28 @@ button:disabled {
     <p>This study is investigating how performance pressure and task difficulty influence problem-solving ability using the Tower of Hanoi puzzle.</p>
 
     <h3>Procedures:</h3>
-    <p>You will complete the Tower of Hanoi puzzle (estimated time: 1-6 minutes). Your completion time and number of moves will be automatically recorded.</p>
+    <p>You will complete the Tower of Hanoi puzzle (estimated time: 1-6 minutes). Your completion time and number of moves will be automatically recorded. The entire study should take no longer than 10 minutes.</p>
 
     <h3>Risks and Discomforts:</h3>
-    <p>Minimal risks — possible mild frustration.</p>
+    <p>There are minimal risks associated with this study. You may experience mild frustration if the puzzle is challenging.</p>
 
-    <h3>Confidentiality & Voluntary Participation:</h3>
-    <p>Participation is voluntary and anonymous. You may withdraw at any time.</p>
+    <h3>Benefits:</h3>
+    <p>There are no direct benefits to participants. However, your participation will contribute to psychological research for Psych 402.</p>
+
+    <h3>Confidentiality:</h3>
+    <p>All data collected is anonymous. No identifying information will be collected or stored.</p>
+
+    <h3>Voluntary Participation and Right to Withdraw:</h3>
+    <p>Your participation is completely voluntary. You may withdraw at any time without penalty by closing the browser.</p>
+
+    <h3>Contact Information:</h3>
+    <p>If you have any questions, please contact:<br>
+       Aidan Barry – adb15@stmarys-ca.edu<br>
+       Faculty Supervisor: Professor Vu – hvu@stmarys-ca.edu</p>
 
     <label>
       <input type="checkbox" id="consentCheckbox">
-      <strong>I am at least 18 years old and voluntarily consent to participate.</strong>
+      <strong>I am at least 18 years old, have read and understood this consent form, and voluntarily agree to participate in this study.</strong>
     </label>
   </div>
   <button id="startBtn" disabled>Continue to Instructions</button>
@@ -96,6 +104,7 @@ button:disabled {
   <h2>Instructions</h2>
   <div class="form-container">
     <p id="instructionText"></p>
+    <p><strong><em>If you are using a phone, please rotate your device sideways (landscape mode) for the best experience.</em></strong></p>
   </div>
   <button id="beginTaskBtn">Start the Puzzle</button>
 </div>
@@ -114,25 +123,31 @@ button:disabled {
   <h2>Thank You for Participating!</h2>
   <div class="form-container">
     <h3>Debriefing Information</h3>
-    <p>This study examined the effects of <strong>performance pressure</strong> and <strong>task difficulty</strong> on problem-solving performance.</p>
-    
-    <p><strong>Manipulations:</strong></p>
+    <p>Thank you for your participation in this study. The purpose of this research was to examine the effects of <strong>performance pressure</strong> and <strong>task difficulty</strong> on problem-solving performance using the Tower of Hanoi puzzle.</p>
+
+    <p><strong>Manipulations Used:</strong></p>
     <ul>
-      <li><strong>Pressure:</strong> Some participants received a high-pressure prompt.</li>
-      <li><strong>Difficulty:</strong> 3-disk (easy) or 4-disk (hard) version.</li>
+      <li><strong>Performance Pressure:</strong> Participants were randomly assigned to either a neutral condition or a pressure condition. The pressure condition included the prompt: “This is a test of intelligence. Many people struggle with this task...”</li>
+      <li><strong>Task Difficulty:</strong> Participants were randomly assigned to either a 3-block (easier) or 4-block (harder) version.</li>
     </ul>
 
-    <p>Your data has been recorded anonymously.</p>
-    <p>Contact: Aidan Barry – adb15@stmarys-ca.edu</p>
+    <p><strong>Hypotheses:</strong><br>
+    We predicted that pressure would increase completion time, especially on the more difficult (4-block) version.</p>
+
+    <p>This study was inspired by previous research including Baumeister (1984) and Beilock & Carr (2005).</p>
+
+    <p>Your data has been recorded anonymously. If you wish to withdraw your data, please contact Aidan Barry at adb15@stmarys-ca.edu.</p>
+
+    <p>Thank you again for contributing to psychological research at Saint Mary's College of California!</p>
   </div>
 </div>
 
 <script>
 // ====================== CONFIG ======================
-const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_NEW_URL_HERE/exec";   // ← Update with your current URL
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxAX6ERIm1Vl0fksevmcbPZEWhBKhrgws-maOXr9BG30cJStG46WKADhVaAFD4KZKcPA/exec";
 
 let group = {}, moves = 0, startTime, numDiscs, pegs = [[], [], []], dragged = null;
-let currentTouchDisk = null;
+let currentTouchBlock = null;
 
 function assignGroup() {
   return {
@@ -143,19 +158,21 @@ function assignGroup() {
 
 function setInstructions() {
   const el = document.getElementById("instructionText");
-  const rules = `<strong>Tower of Hanoi Rules:</strong><br><br>
-    • Move all disks from left peg to right peg.<br>
-    • Only one disk at a time.<br>
-    • Never place a larger disk on a smaller one.<br><br>`;
-  
+  const rules = `
+    <strong>Tower of Hanoi Rules:</strong><br><br>
+    • Move all blocks from the left box to the right box.<br>
+    • Only one block may be moved at a time.<br>
+    • A larger block cannot be placed on a smaller block.<br><br>
+  `;
+
   let prompt = group.pressure === "pressure" 
     ? "This is a test of intelligence. Many people struggle with this task. Complete it as quickly and accurately as possible."
     : "Please complete the puzzle as quickly and accurately as possible.";
-  
+
   el.innerHTML = rules + "<strong>" + prompt + "</strong>";
 }
 
-// ====================== GAME LOGIC ======================
+// ====================== GAME ======================
 function initGame() {
   numDiscs = group.difficulty === "easy" ? 3 : 4;
   moves = 0;
@@ -169,74 +186,70 @@ function render() {
   const game = document.getElementById("game");
   game.innerHTML = "";
 
-  pegs.forEach((peg, pegIndex) => {
-    const pegDiv = document.createElement("div");
-    pegDiv.className = "peg";
-    pegDiv.dataset.index = pegIndex;
+  pegs.forEach((box, boxIndex) => {
+    const boxDiv = document.createElement("div");
+    boxDiv.className = "box";
+    boxDiv.dataset.index = boxIndex;
 
-    peg.forEach((size, i) => {
-      const diskDiv = document.createElement("div");
-      diskDiv.className = "disk";
-      diskDiv.style.width = (size * 28 + 20) + "px";
-      diskDiv.style.bottom = (i * 26) + "px";
-      diskDiv.style.background = "#0066cc";
-      diskDiv.dataset.size = size;
-      diskDiv.dataset.peg = pegIndex;
+    box.forEach((size, i) => {
+      const blockDiv = document.createElement("div");
+      blockDiv.className = "block";
+      blockDiv.style.width = (size * 24 + 30) + "px";   // Adjusted for better fit
+      blockDiv.style.bottom = (i * 26) + "px";
+      blockDiv.style.background = "#0066cc";
+      blockDiv.dataset.size = size;
+      blockDiv.dataset.box = boxIndex;
 
-      // Mouse support
-      diskDiv.draggable = true;
-      diskDiv.addEventListener("dragstart", (e) => {
-        dragged = { size: parseInt(size), from: pegIndex };
-      });
+      // Mouse
+      blockDiv.draggable = true;
+      blockDiv.addEventListener("dragstart", () => dragged = {size: size, from: boxIndex});
 
-      // Touch support
-      diskDiv.addEventListener("touchstart", handleTouchStart, { passive: false });
+      // Touch
+      blockDiv.addEventListener("touchstart", handleTouchStart, { passive: false });
 
-      pegDiv.appendChild(diskDiv);
+      boxDiv.appendChild(blockDiv);
     });
 
-    pegDiv.addEventListener("dragover", e => e.preventDefault());
-    pegDiv.addEventListener("drop", handleDrop);
-    pegDiv.addEventListener("touchend", handleTouchEnd);
+    boxDiv.addEventListener("dragover", e => e.preventDefault());
+    boxDiv.addEventListener("drop", handleDrop);
+    boxDiv.addEventListener("touchend", handleTouchEnd);
 
-    game.appendChild(pegDiv);
+    game.appendChild(boxDiv);
   });
 }
 
 // Touch Handlers
 function handleTouchStart(e) {
   e.preventDefault();
-  const disk = e.target;
-  currentTouchDisk = {
-    element: disk,
-    size: parseInt(disk.dataset.size),
-    from: parseInt(disk.dataset.peg)
+  const block = e.target;
+  currentTouchBlock = {
+    size: parseInt(block.dataset.size),
+    from: parseInt(block.dataset.box)
   };
 }
 
 function handleTouchEnd(e) {
-  if (!currentTouchDisk) return;
+  if (!currentTouchBlock) return;
   const touch = e.changedTouches[0];
   const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-  const pegDiv = dropTarget.closest('.peg');
+  const boxDiv = dropTarget ? dropTarget.closest('.box') : null;
   
-  if (pegDiv) {
-    const to = parseInt(pegDiv.dataset.index);
-    attemptMove(currentTouchDisk.from, to);
+  if (boxDiv) {
+    attemptMove(currentTouchBlock.from, parseInt(boxDiv.dataset.index));
   }
-  currentTouchDisk = null;
+  currentTouchBlock = null;
 }
 
 function attemptMove(from, to) {
-  const fromPeg = pegs[from];
-  const toPeg = pegs[to];
-  const diskSize = fromPeg[fromPeg.length - 1];
+  const fromBox = pegs[from];
+  const toBox = pegs[to];
+  const blockSize = fromBox[fromBox.length - 1];
 
-  if (fromPeg[fromPeg.length - 1] !== diskSize) return;
-  if (toPeg.length && toPeg[toPeg.length - 1] < diskSize) return;
+  if (fromBox[fromBox.length - 1] !== blockSize) return;
+  if (toBox.length && toBox[toBox.length - 1] < blockSize) return;
 
-  fromPeg.pop();
-  toPeg.push(diskSize);
+  fromBox.pop();
+  toBox.push(blockSize);
   moves++;
   document.getElementById("moves").innerText = moves;
   render();
@@ -258,32 +271,45 @@ function checkWin() {
 }
 
 function saveData(timeTaken) {
-  const payload = { pressure: group.pressure, difficulty: group.difficulty, time: timeTaken, moves: moves };
+  const payload = {
+    pressure: group.pressure,
+    difficulty: group.difficulty,
+    time: timeTaken,
+    moves: moves
+  };
+
   fetch(SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload)
-  }).then(() => console.log("✅ Data sent")).catch(err => console.error("❌ Save failed", err));
+  }).then(() => console.log("✅ Data sent successfully"))
+    .catch(err => console.error("❌ Save failed", err));
 }
 
 function withdraw() {
-  if (confirm("Withdraw? Data will not be saved.")) {
+  if (confirm("Are you sure you want to withdraw? Your data will not be saved.")) {
     document.getElementById("gameScreen").classList.add("hidden");
     document.getElementById("debriefScreen").classList.remove("hidden");
   }
 }
 
-// ====================== INIT ======================
+// ====================== INITIALIZE ======================
 window.onload = () => {
   group = assignGroup();
-  const cb = document.getElementById("consentCheckbox");
-  const btn = document.getElementById("startBtn");
-  cb.addEventListener("change", () => btn.disabled = !cb.checked);
-  btn.addEventListener("click", () => {
+
+  const consentCheckbox = document.getElementById("consentCheckbox");
+  const startBtn = document.getElementById("startBtn");
+
+  consentCheckbox.addEventListener("change", () => {
+    startBtn.disabled = !consentCheckbox.checked;
+  });
+
+  startBtn.addEventListener("click", () => {
     document.getElementById("consentScreen").classList.add("hidden");
     document.getElementById("instructionsScreen").classList.remove("hidden");
     setInstructions();
   });
+
   document.getElementById("beginTaskBtn").addEventListener("click", () => {
     document.getElementById("instructionsScreen").classList.add("hidden");
     document.getElementById("gameScreen").classList.remove("hidden");
