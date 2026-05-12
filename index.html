@@ -3,39 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <title>Tower of Hanoi Experiment</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
 body {
   font-family: Arial, sans-serif;
   text-align: center;
-  margin: 10px;
+  margin: 20px;
 }
 .hidden { display: none; }
-#game { 
-  display: flex; 
-  justify-content: center; 
-  margin: 20px auto;
-  flex-wrap: wrap;
-}
-.box { 
-  width: 100px; 
-  height: 280px; 
-  border: 3px solid #333; 
-  border-top: none;
-  margin: 8px;
-  position: relative;
-  background-color: #f0f0f0;
-  border-radius: 8px;
-}
-.block { 
-  height: 22px; 
-  position: absolute; 
-  left: 50%;
-  transform: translateX(-50%);
-  border-radius: 12px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-  user-select: none;
-}
+#game { display: flex; justify-content: center; margin-top: 40px; }
+.peg { width: 120px; height: 300px; border: 2px solid black; margin: 0 20px; position: relative; }
+.disk { height: 20px; position: absolute; left: 0; right: 0; margin: auto; border-radius: 10px; cursor: grab; }
 .form-container {
   max-width: 700px;
   margin: 20px auto;
@@ -72,22 +49,22 @@ button:disabled {
     <p>This study is investigating how performance pressure and task difficulty influence problem-solving ability using the Tower of Hanoi puzzle.</p>
 
     <h3>Procedures:</h3>
-    <p>You will complete the Tower of Hanoi puzzle (estimated time: 1-6 minutes). Your completion time and number of moves will be automatically recorded. The entire study should take no longer than 10 minutes.</p>
+    <p>If you agree to participate, you will complete the Tower of Hanoi puzzle on your computer. The task should take between 1 and 6 minutes. Your completion time and number of moves will be automatically recorded. The entire process should take no longer than 10 minutes.</p>
 
     <h3>Risks and Discomforts:</h3>
-    <p>There are minimal risks associated with this study. You may experience mild frustration if the puzzle is challenging.</p>
+    <p>There are minimal risks associated with this study. You may experience mild frustration if the puzzle is challenging, similar to any cognitive task.</p>
 
     <h3>Benefits:</h3>
-    <p>There are no direct benefits to participants. However, your participation will contribute to psychological research for Psych 402.</p>
+    <p>There are no direct benefits to participants. However, your participation will contribute to our understanding of cognitive performance and will help fulfill course requirements for Psych 402.</p>
 
     <h3>Confidentiality:</h3>
-    <p>All data collected is anonymous. No identifying information will be collected or stored.</p>
+    <p>All data collected is anonymous. No identifying information (such as your name or email) will be collected or stored.</p>
 
     <h3>Voluntary Participation and Right to Withdraw:</h3>
-    <p>Your participation is completely voluntary. You may withdraw at any time without penalty by closing the browser.</p>
+    <p>Your participation is completely voluntary. You may refuse to participate or withdraw at any time without penalty by simply closing the browser window.</p>
 
     <h3>Contact Information:</h3>
-    <p>If you have any questions, please contact:<br>
+    <p>If you have any questions about this study, please contact:<br>
        Aidan Barry – adb15@stmarys-ca.edu<br>
        Faculty Supervisor: Professor Vu – hvu@stmarys-ca.edu</p>
 
@@ -104,7 +81,6 @@ button:disabled {
   <h2>Instructions</h2>
   <div class="form-container">
     <p id="instructionText"></p>
-    <p><strong><em>If you are using a phone, please rotate your device sideways (landscape mode) for the best experience.</em></strong></p>
   </div>
   <button id="beginTaskBtn">Start the Puzzle</button>
 </div>
@@ -128,26 +104,31 @@ button:disabled {
     <p><strong>Manipulations Used:</strong></p>
     <ul>
       <li><strong>Performance Pressure:</strong> Participants were randomly assigned to either a neutral condition or a pressure condition. The pressure condition included the prompt: “This is a test of intelligence. Many people struggle with this task...”</li>
-      <li><strong>Task Difficulty:</strong> Participants were randomly assigned to either a 3-block (easier) or 4-block (harder) version.</li>
+      <li><strong>Task Difficulty:</strong> Participants were randomly assigned to either a 3-disk version (easier) or a 4-disk version (harder).</li>
     </ul>
 
     <p><strong>Hypotheses:</strong><br>
-    We predicted that pressure would increase completion time, especially on the more difficult (4-block) version.</p>
+    We predicted that pressure would increase completion time, especially on the more difficult (4-disk) version.</p>
 
-    <p>This study was inspired by previous research including Baumeister (1984) and Beilock & Carr (2005).</p>
+    <p>This study was inspired by previous research including Baumeister (1984) on choking under pressure and Beilock & Carr (2005) on how pressure affects working memory during problem-solving tasks.</p>
 
-    <p>Your data has been recorded anonymously. If you wish to withdraw your data, please contact Aidan Barry at adb15@stmarys-ca.edu.</p>
+    <p>Your data has been recorded anonymously. If you wish to withdraw your data, please contact Aidan Barry at adb15@stmarys-ca.edu as soon as possible.</p>
 
     <p>Thank you again for contributing to psychological research at Saint Mary's College of California!</p>
   </div>
+  <button onclick="window.location.reload()">Restart (Testing Only)</button>
 </div>
 
 <script>
 // ====================== CONFIG ======================
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxAX6ERIm1Vl0fksevmcbPZEWhBKhrgws-maOXr9BG30cJStG46WKADhVaAFD4KZKcPA/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxAX6ERIm1Vl0fksevmcbPZEWhBKhrgws-maOXr9BG30cJStG46WKADhVaAFD4KZKcPA/exec";   // ← PASTE YOUR CURRENT URL HERE
 
-let group = {}, moves = 0, startTime, numDiscs, pegs = [[], [], []], dragged = null;
-let currentTouchBlock = null;
+let group = {};
+let moves = 0;
+let startTime;
+let numDiscs;
+let pegs = [[], [], []];
+let dragged = null;
 
 function assignGroup() {
   return {
@@ -172,93 +153,79 @@ function setInstructions() {
   el.innerHTML = rules + "<strong>" + prompt + "</strong>";
 }
 
-// ====================== GAME ======================
+// ====================== START FLOW ======================
+function startExperiment() {
+  if (!document.getElementById("consentCheckbox").checked) {
+    alert("You must provide consent before participating.");
+    return;
+  }
+  document.getElementById("consentScreen").classList.add("hidden");
+  document.getElementById("instructionsScreen").classList.remove("hidden");
+  setInstructions();
+}
+
+function beginTask() {
+  document.getElementById("instructionsScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+  startTime = Date.now();
+  initGame();
+}
+
+// ====================== GAME LOGIC ======================
 function initGame() {
   numDiscs = group.difficulty === "easy" ? 3 : 4;
   moves = 0;
   pegs = [[], [], []];
   document.getElementById("moves").innerText = moves;
-  for (let i = numDiscs; i >= 1; i--) pegs[0].push(i);
+  for (let i = numDiscs; i >= 1; i--) {
+    pegs[0].push(i);
+  }
   render();
 }
 
 function render() {
   const game = document.getElementById("game");
   game.innerHTML = "";
+  pegs.forEach((peg, pegIndex) => {
+    const pegDiv = document.createElement("div");
+    pegDiv.className = "peg";
+    pegDiv.dataset.index = pegIndex;
 
-  pegs.forEach((box, boxIndex) => {
-    const boxDiv = document.createElement("div");
-    boxDiv.className = "box";
-    boxDiv.dataset.index = boxIndex;
-
-    box.forEach((size, i) => {
-      const blockDiv = document.createElement("div");
-      blockDiv.className = "block";
-      blockDiv.style.width = (size * 24 + 30) + "px";   // Adjusted for better fit
-      blockDiv.style.bottom = (i * 26) + "px";
-      blockDiv.style.background = "#0066cc";
-      blockDiv.dataset.size = size;
-      blockDiv.dataset.box = boxIndex;
-
-      // Mouse
-      blockDiv.draggable = true;
-      blockDiv.addEventListener("dragstart", () => dragged = {size: size, from: boxIndex});
-
-      // Touch
-      blockDiv.addEventListener("touchstart", handleTouchStart, { passive: false });
-
-      boxDiv.appendChild(blockDiv);
+    peg.forEach((disk, i) => {
+      const diskDiv = document.createElement("div");
+      diskDiv.className = "disk";
+      diskDiv.style.width = (disk * 30) + "px";
+      diskDiv.style.bottom = (i * 22) + "px";
+      diskDiv.style.background = "green";
+      diskDiv.draggable = true;
+      diskDiv.dataset.size = disk;
+      diskDiv.dataset.peg = pegIndex;
+      diskDiv.addEventListener("dragstart", (e) => {
+        dragged = { size: parseInt(e.target.dataset.size), from: parseInt(e.target.dataset.peg) };
+      });
+      pegDiv.appendChild(diskDiv);
     });
 
-    boxDiv.addEventListener("dragover", e => e.preventDefault());
-    boxDiv.addEventListener("drop", handleDrop);
-    boxDiv.addEventListener("touchend", handleTouchEnd);
-
-    game.appendChild(boxDiv);
+    pegDiv.addEventListener("dragover", (e) => e.preventDefault());
+    pegDiv.addEventListener("drop", handleDrop);
+    game.appendChild(pegDiv);
   });
-}
-
-// Touch Handlers
-function handleTouchStart(e) {
-  e.preventDefault();
-  const block = e.target;
-  currentTouchBlock = {
-    size: parseInt(block.dataset.size),
-    from: parseInt(block.dataset.box)
-  };
-}
-
-function handleTouchEnd(e) {
-  if (!currentTouchBlock) return;
-  const touch = e.changedTouches[0];
-  const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-  const boxDiv = dropTarget ? dropTarget.closest('.box') : null;
-  
-  if (boxDiv) {
-    attemptMove(currentTouchBlock.from, parseInt(boxDiv.dataset.index));
-  }
-  currentTouchBlock = null;
-}
-
-function attemptMove(from, to) {
-  const fromBox = pegs[from];
-  const toBox = pegs[to];
-  const blockSize = fromBox[fromBox.length - 1];
-
-  if (fromBox[fromBox.length - 1] !== blockSize) return;
-  if (toBox.length && toBox[toBox.length - 1] < blockSize) return;
-
-  fromBox.pop();
-  toBox.push(blockSize);
-  moves++;
-  document.getElementById("moves").innerText = moves;
-  render();
-  checkWin();
 }
 
 function handleDrop(e) {
   const to = parseInt(e.currentTarget.dataset.index);
-  attemptMove(dragged.from, to);
+  const fromPeg = pegs[dragged.from];
+  const toPeg = pegs[to];
+
+  if (fromPeg[fromPeg.length - 1] !== dragged.size) return;
+  if (toPeg.length && toPeg[toPeg.length - 1] < dragged.size) return;
+
+  fromPeg.pop();
+  toPeg.push(dragged.size);
+  moves++;
+  document.getElementById("moves").innerText = moves;
+  render();
+  checkWin();
 }
 
 function checkWin() {
@@ -281,9 +248,11 @@ function saveData(timeTaken) {
   fetch(SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload)
-  }).then(() => console.log("✅ Data sent successfully"))
-    .catch(err => console.error("❌ Save failed", err));
+    body: JSON.stringify(payload),
+    redirect: "follow"
+  })
+  .then(() => console.log("✅ Data sent successfully"))
+  .catch(err => console.error("❌ Save failed:", err));
 }
 
 function withdraw() {
@@ -304,18 +273,8 @@ window.onload = () => {
     startBtn.disabled = !consentCheckbox.checked;
   });
 
-  startBtn.addEventListener("click", () => {
-    document.getElementById("consentScreen").classList.add("hidden");
-    document.getElementById("instructionsScreen").classList.remove("hidden");
-    setInstructions();
-  });
-
-  document.getElementById("beginTaskBtn").addEventListener("click", () => {
-    document.getElementById("instructionsScreen").classList.add("hidden");
-    document.getElementById("gameScreen").classList.remove("hidden");
-    startTime = Date.now();
-    initGame();
-  });
+  startBtn.addEventListener("click", startExperiment);
+  document.getElementById("beginTaskBtn").addEventListener("click", beginTask);
 };
 </script>
 </body>
