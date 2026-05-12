@@ -121,7 +121,7 @@ button:disabled {
 
 <script>
 // ====================== CONFIG ======================
-const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_NEW_URL_HERE/exec";   // ← PASTE YOUR CURRENT URL HERE
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxAX6ERIm1Vl0fksevmcbPZEWhBKhrgws-maOXr9BG30cJStG46WKADhVaAFD4KZKcPA/exec";   // ← PASTE YOUR CURRENT URL HERE
 
 let group = {};
 let moves = 0;
@@ -141,9 +141,9 @@ function setInstructions() {
   const el = document.getElementById("instructionText");
   const rules = `
     <strong>Tower of Hanoi Rules:</strong><br><br>
-    • Move all disks from the left peg to the right peg.<br>
-    • Only one disk may be moved at a time.<br>
-    • A larger disk cannot be placed on a smaller disk.<br><br>
+    • Move all blocks from the left box to the right box.<br>
+    • Only one block may be moved at a time.<br>
+    • A larger block cannot be placed on a smaller block.<br><br>
   `;
 
   let prompt = group.pressure === "pressure" 
